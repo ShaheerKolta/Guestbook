@@ -1,5 +1,6 @@
 ﻿using Guestbook.Interfaces;
 using Guestbook.Model;
+using Guestbook.Validators;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,6 +11,7 @@ namespace Guestbook.Controllers
     public class UserController : ControllerBase
     {
         private IUserRepository _userRepository;
+        private UserValidator validator = new UserValidator();
         public UserController(IUserRepository userRepository)
         {
             _userRepository = userRepository;
@@ -79,13 +81,20 @@ namespace Guestbook.Controllers
         {
             try
             {
-                var duplicate = await _userRepository.GetUserByEmailAsync(user.Email);
-                if (duplicate != null)
-                    return BadRequest("Email Already Exists");
+                var result = validator.Validate(user);
+                if (result.IsValid) { 
+                    var duplicate = await _userRepository.GetUserByEmailAsync(user.Email);
+                    if (duplicate != null)
+                        return BadRequest("Email Already Exists");
+                    else
+                    {
+                        _userRepository.CreateUser(user);
+                        return NoContent();
+                    }
+                }
                 else
                 {
-                    _userRepository.CreateUser(user);
-                    return NoContent();
+                    return BadRequest(result.ToString(" - "));
                 }
             }
             catch
