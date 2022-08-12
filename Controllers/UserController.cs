@@ -88,6 +88,7 @@ namespace Guestbook.Controllers
                         return BadRequest("Email Already Exists");
                     else
                     {
+                        //hashing user password to save it in database
                         user.Password = Hashing.Hashing.getHash(user.Password);
                         _userRepository.CreateUser(user);
                         return NoContent();
@@ -113,6 +114,10 @@ namespace Guestbook.Controllers
             {
                 if (email != user.Email)
                     return BadRequest("Emails Doesn't Match");
+                //user should be validated here as well but it was not required
+
+                //user password is hashed to be stored in database
+                user.Password = Hashing.Hashing.getHash(user.Password);
                 _userRepository.UpdateUser(user);
                 return NoContent();
             }

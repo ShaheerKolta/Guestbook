@@ -69,7 +69,7 @@ namespace Guestbook.Repositories
          */
         public void UpdateUser(User user)
         {
-            var query = "UPDATE Users SET Name=@Name,Date_of_Birth =@Date_of_Birth,Password=@Password";
+            var query = "UPDATE Users SET Name=@Name,Date_of_Birth =@Date_of_Birth,Password=@Password WHERE Email=@Email";
             
             using (var connection = _context.CreateConnection())
             {
