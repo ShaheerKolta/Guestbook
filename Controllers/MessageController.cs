@@ -1,5 +1,6 @@
 ﻿using Guestbook.Interfaces;
 using Guestbook.Model;
+using Guestbook.Validators;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -57,9 +58,19 @@ namespace Guestbook.Controllers
         {
             try
             {
+                MessageValidator validator = new MessageValidator(1);
+                var result =validator.Validate(message);
+                if (result.IsValid)
+                {
+                    _messageRepository.CreateMessage(message);
+                    return NoContent();
+                }
+                else
+                {
+                    return BadRequest(result.ToString(" - "));
+                }
 
-                _messageRepository.CreateMessage(message);
-                return NoContent();
+                
                 
             }
             catch
