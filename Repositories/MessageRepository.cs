@@ -12,7 +12,9 @@ namespace Guestbook.Repositories
         public MessageRepository(DapperContext context)
         {
             _context = context;
-
+            RuleFor(message => message.Message_Id).NotNull();
+            RuleFor(message => message.User_Id).NotNull();
+            RuleFor(message => message.Message_Content).NotNull();
         }
         
 
