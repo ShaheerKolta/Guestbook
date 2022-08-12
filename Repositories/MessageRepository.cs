@@ -1,16 +1,18 @@
 ﻿using Dapper;
+using FluentValidation;
 using Guestbook.Dapper;
 using Guestbook.Interfaces;
 using Guestbook.Model;
 
 namespace Guestbook.Repositories
 {
-    public class MessageRepository : IMessageRepository
+    public class MessageRepository : AbstractValidator<Message>, IMessageRepository
     {
         private readonly DapperContext _context;
         public MessageRepository(DapperContext context)
         {
             _context = context;
+
         }
         
 
