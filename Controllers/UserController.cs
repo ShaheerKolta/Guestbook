@@ -88,6 +88,7 @@ namespace Guestbook.Controllers
                         return BadRequest("Email Already Exists");
                     else
                     {
+                        user.Password = Hashing.Hashing.getHash(user.Password);
                         _userRepository.CreateUser(user);
                         return NoContent();
                     }

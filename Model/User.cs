@@ -5,10 +5,7 @@ namespace Guestbook.Model
 {
     public class User
     {
-        /*public User()
-        {
-            Messages = new HashSet<Message> ();
-        }*/
+        
         [Key]
         public int User_Id { get; set; }
         [Required]
@@ -19,7 +16,5 @@ namespace Guestbook.Model
         public string Email { get; set; }
         public string Password { get; set; }
         
-        //[InverseProperty("User")]
-        //public ICollection<Message> Messages { get; set; }
     }
 }
