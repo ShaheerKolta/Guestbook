@@ -89,8 +89,14 @@ namespace Guestbook.Controllers
         {
             try
             {
-                _messageRepository.UpdateMessage(message);
-                return NoContent();
+                MessageValidator validator = new MessageValidator();
+                var result = validator.Validate(message);
+                if (result.IsValid)
+                {
+                    _messageRepository.UpdateMessage(message);
+                    return NoContent();
+                }
+                else { return BadRequest(result.ToString(" - ")); }
             }
             catch
             {
