@@ -57,9 +57,9 @@ namespace Guestbook.Controllers
             JwtSecurityToken t = (JwtSecurityToken)new JwtSecurityTokenHandler().ReadToken(Authorization.Substring(7));
             var x = t.Claims.ToList();
 
-            if (x[0].Value != email && x[2].Value != "Admin")
+            if (x[1].Value != email && x[2].Value != "Admin")
             {
-                return Unauthorized();
+                return Unauthorized(new { message = "Emails Does not Match" });
             }
             try
             {
@@ -77,8 +77,15 @@ namespace Guestbook.Controllers
         //to be used by client to delete it's Account
         [HttpDelete("{email}")]
         [Authorize(Policy = "User")]
-        public async Task<IActionResult> DeleteUserByEmail(string email)
+        public async Task<IActionResult> DeleteUserByEmail(string email , [FromHeader] string Authorization)
         {
+            JwtSecurityToken t = (JwtSecurityToken)new JwtSecurityTokenHandler().ReadToken(Authorization.Substring(7));
+            var x = t.Claims.ToList();
+
+            if (x[1].Value != email && x[2].Value != "Admin")
+            {
+                return Unauthorized(new { message = "Emails Does not Match" });
+            }
             try
             {
                 var user = await _userRepository.GetUserByEmailAsync(email);
@@ -131,8 +138,15 @@ namespace Guestbook.Controllers
         //data Recieved must be valid from frontend (All fields must be present except for userId)
         [HttpPut("{email}")]
         [Authorize(Policy ="User")]
-        public async Task<IActionResult> EditUser(string email ,User user)
+        public async Task<IActionResult> EditUser(string email ,User user , [FromHeader] string Authorization)
         {
+            JwtSecurityToken t = (JwtSecurityToken)new JwtSecurityTokenHandler().ReadToken(Authorization.Substring(7));
+            var x = t.Claims.ToList();
+
+            if (x[1].Value != email && x[2].Value != "Admin")
+            {
+                return Unauthorized(new {message = "Emails Does not Match"});
+            }
             try
             {
                 if (email != user.Email)
