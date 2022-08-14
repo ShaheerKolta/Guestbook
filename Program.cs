@@ -19,16 +19,18 @@ builder.Services.AddScoped<IMessageRepository, MessageRepository>();
 
 builder.Services.AddAuthorization(opt =>
 {
-
+    //to be used with services of Admin only
     opt.AddPolicy("Admin", p =>
     {
         p.RequireClaim("Role", "Admin");
     });
-
+    //to be used with services for user (including admin as well)
     opt.AddPolicy("User", p =>
     {
         p.RequireClaim("Role", "User", "Admin");
     });
+
+    //this fallback policy prevents anyone who is not a system user to be able to reach anything in the system
     opt.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
 });
 

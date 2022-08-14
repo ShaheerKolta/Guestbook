@@ -61,7 +61,7 @@ namespace Guestbook.Controllers
         [Authorize(Policy = "User")]
         public async Task<IActionResult> PostMessage(Message message , [FromHeader] string Authorization)
         {
-            //reading of token and making sure message posted by user is same as token holder
+            //reading of token and making sure message poster is the same as token holder
             JwtSecurityToken t = (JwtSecurityToken)new JwtSecurityTokenHandler().ReadToken(Authorization.Substring(7));
             var x = t.Claims.ToList();
             if (x[0].Value != message.User_Id.ToString() && x[2].Value != "Admin")
@@ -102,8 +102,10 @@ namespace Guestbook.Controllers
         [Authorize(Policy = "User")]
         public async Task<IActionResult> EditMessage(Message message , [FromHeader] string Authorization)
         {
+            //Read token to check wether the owner of the message is the one making the edit
             JwtSecurityToken t = (JwtSecurityToken)new JwtSecurityTokenHandler().ReadToken(Authorization.Substring(7));
             var x = t.Claims.ToList();
+            //only message owner can edit the message
             if (x[0].Value != message.User_Id.ToString())
             {
                 return Unauthorized(new { message = "User_Id in Message Does not Match User_id in Token" });
@@ -133,10 +135,9 @@ namespace Guestbook.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteMessageById(int id, [FromHeader] string Authorization)
         {
+            //read token to make sure owner of message is the one deleting it or it is the admin
             JwtSecurityToken t = (JwtSecurityToken)new JwtSecurityTokenHandler().ReadToken(Authorization.Substring(7));
             var x = t.Claims.ToList();
-            
-
             try
             {
                 var message = await _messageRepository.GetMessageByIdAsync(id);
