@@ -144,12 +144,16 @@ namespace Guestbook.Controllers
             {
                 User user = await _userRepository.GetUserByEmailAsync(data.Email);
                 if (user == null)
-                    return Unauthorized();
+                    return BadRequest(new { message = "User Does not Exist" });
                 var hashedPassword = Hashing.Hashing.getHash(data.Password);
                 if(!user.Password.Equals(hashedPassword))
                     return BadRequest(new {message ="Wrong Password"});
-                var token = GenerateToken(user.User_Id);
-                return Ok(new { token = token, userId = user.User_Id });
+                String role = "";
+                if (user.User_Id == 1)
+                    role = "Admin";
+                else role = "User";
+                var token = GenerateToken(user.User_Id,role);
+                return Ok(new { token = token, userId = user.User_Id , role=role});
             }
             catch (Exception ex)
             {
@@ -159,7 +163,7 @@ namespace Guestbook.Controllers
         }
 
 
-        private string GenerateToken(int userId)
+        private string GenerateToken(int userId , string role)
         {
             var secretKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(
                 _config.GetValue<string>("Authentication:SecretKey")));
@@ -170,6 +174,7 @@ namespace Guestbook.Controllers
 
             List<Claim> claims = new();
             claims.Add(new(JwtRegisteredClaimNames.Sub, userId.ToString()));
+            claims.Add(new("Role", role));
 
 
 
