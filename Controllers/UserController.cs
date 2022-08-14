@@ -52,8 +52,15 @@ namespace Guestbook.Controllers
         //Function to get user by Emial to be used to display profile
         [HttpGet("{email}")]
         [Authorize(Policy = "User")]
-        public async Task<ActionResult<User>> GetUserByEmail(string email)
+        public async Task<ActionResult<User>> GetUserByEmail(string email , [FromHeader] string Authorization)
         {
+            JwtSecurityToken t = (JwtSecurityToken)new JwtSecurityTokenHandler().ReadToken(Authorization.Substring(7));
+            var x = t.Claims.ToList();
+
+            if (x[0].Value != email && x[2].Value != "Admin")
+            {
+                return Unauthorized();
+            }
             try
             {
                 var user = await _userRepository.GetUserByEmailAsync(email);
@@ -159,7 +166,7 @@ namespace Guestbook.Controllers
                 if (user.User_Id == 1)
                     role = "Admin";
                 else role = "User";
-                var token = GenerateToken(user.User_Id,role);
+                var token = GenerateToken(user , role);
                 return Ok(new { token = token, userId = user.User_Id});
             }
             catch (Exception ex)
@@ -170,7 +177,7 @@ namespace Guestbook.Controllers
         }
 
 
-        private string GenerateToken(int userId , string role)
+        private string GenerateToken(User user , string role)
         {
             var secretKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(
                 _config.GetValue<string>("Authentication:SecretKey")));
@@ -180,7 +187,8 @@ namespace Guestbook.Controllers
 
 
             List<Claim> claims = new();
-            claims.Add(new(JwtRegisteredClaimNames.Sub, userId.ToString()));
+            claims.Add(new(JwtRegisteredClaimNames.Sub, user.User_Id.ToString()));
+            claims.Add(new(JwtRegisteredClaimNames.UniqueName, user.Email.ToString()));
             claims.Add(new("Role", role));
 
 
