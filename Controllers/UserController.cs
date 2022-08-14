@@ -3,6 +3,8 @@ using Guestbook.Model;
 using Guestbook.Validators;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
@@ -17,7 +19,7 @@ namespace Guestbook.Controllers
         private UserValidator validator ;
         
         //to be used with sign in
-        public record AuthenticationData(string? Email, string? Password);
+        public record AuthenticationData(string Email, string Password);
         public UserController(IUserRepository userRepository , IConfiguration config)
         {
             _userRepository = userRepository;
@@ -135,6 +137,26 @@ namespace Guestbook.Controllers
             }
         }
 
+        [HttpPost("login")]
+        public async Task<ActionResult<string>> Authenticate([FromBody] AuthenticationData data)
+        {
+            try
+            {
+                User user = await _userRepository.GetUserByEmailAsync(data.Email);
+                if (user == null)
+                    return Unauthorized();
+                var hashedPassword = Hashing.Hashing.getHash(data.Password);
+                if(!user.Password.Equals(hashedPassword))
+                    return BadRequest(new {message ="Wrong Password"});
+                var token = GenerateToken(user.User_Id);
+                return Ok(new { token = token, userId = user.User_Id });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+        }
 
 
         private string GenerateToken(int userId)
@@ -152,8 +174,8 @@ namespace Guestbook.Controllers
 
 
             var token = new JwtSecurityToken(
-                config.GetValue<string>("Authentication:Issuer"),
-                config.GetValue<string>("Authentication:Audience"),
+                _config.GetValue<string>("Authentication:Issuer"),
+                _config.GetValue<string>("Authentication:Audience"),
                 claims,
                 DateTime.Now,
                 DateTime.Now.AddDays(1),
