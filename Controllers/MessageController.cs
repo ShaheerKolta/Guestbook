@@ -1,8 +1,10 @@
 ﻿using Guestbook.Interfaces;
 using Guestbook.Model;
 using Guestbook.Validators;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Guestbook.Controllers
 {
@@ -17,6 +19,7 @@ namespace Guestbook.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<Message>>> GetMessages()
         {
             try
@@ -34,6 +37,7 @@ namespace Guestbook.Controllers
 
         //id is the Message_Id
         [HttpGet("replies/{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<Message>>> GetMessagesReplies(int id)
         {
             try
@@ -54,8 +58,18 @@ namespace Guestbook.Controllers
         /*In case of reply the Parent_Id attribute of the message shall be set with Message_Id of the message that the reply is made to
          */
         [HttpPost]
-        public async Task<IActionResult> PostMessage(Message message)
+        [Authorize(Policy = "User")]
+        public async Task<IActionResult> PostMessage(Message message , [FromHeader] string Authorization)
         {
+            //reading of token and making sure message posted by user is same as token holder
+            JwtSecurityToken t = (JwtSecurityToken)new JwtSecurityTokenHandler().ReadToken(Authorization.Substring(7));
+            var x = t.Claims.ToList();
+            if (x[0].Value != message.User_Id.ToString() && x[2].Value != "Admin")
+            {
+                return Unauthorized(new { message = "User_Id in Message Does not Match User_id in Token" });
+            }
+
+
             try
             {
                 MessageValidator validator = new MessageValidator(1);
@@ -85,8 +99,16 @@ namespace Guestbook.Controllers
         //Essential Data : Message_Id and Message_Content
         //To do : check Task
         [HttpPut]
-        public async Task<IActionResult> EditMessage(Message message)
+        [Authorize(Policy = "User")]
+        public async Task<IActionResult> EditMessage(Message message , [FromHeader] string Authorization)
         {
+            JwtSecurityToken t = (JwtSecurityToken)new JwtSecurityTokenHandler().ReadToken(Authorization.Substring(7));
+            var x = t.Claims.ToList();
+            if (x[0].Value != message.User_Id.ToString())
+            {
+                return Unauthorized(new { message = "User_Id in Message Does not Match User_id in Token" });
+            }
+
             try
             {
                 MessageValidator validator = new MessageValidator();
@@ -109,11 +131,20 @@ namespace Guestbook.Controllers
 
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteMessageById(int id)
+        public async Task<IActionResult> DeleteMessageById(int id, [FromHeader] string Authorization)
         {
+            JwtSecurityToken t = (JwtSecurityToken)new JwtSecurityTokenHandler().ReadToken(Authorization.Substring(7));
+            var x = t.Claims.ToList();
+            
+
             try
             {
                 var message = await _messageRepository.GetMessageByIdAsync(id);
+                if (x[0].Value != message.User_Id.ToString() && x[2].Value != "Admin")
+                {
+                    return Unauthorized(new { message = "User_Id in Message Does not Match User_id in Token" });
+                }
+
                 if (message != null)
                 {
                     _messageRepository.DeleteMessage(id);
