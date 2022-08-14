@@ -16,7 +16,7 @@ namespace Guestbook.Repositories
 
         public async Task<User> GetUserByEmailAsync(string email)
         {
-            var query = "SELECT User_Id,Name,Date_of_Birth,Email FROM Users WHERE Email=@Email";
+            var query = "SELECT * FROM Users WHERE Email=@Email";
             using (var connection = _context.CreateConnection())
             {
                 var user = await connection.QuerySingleOrDefaultAsync<User>(query, new { email });

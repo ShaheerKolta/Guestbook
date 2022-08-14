@@ -65,7 +65,10 @@ namespace Guestbook.Controllers
             {
                 var user = await _userRepository.GetUserByEmailAsync(email);
                 if (user != null)
+                {
+                    user.Password = null;
                     return user;
+                }
                 else return BadRequest(new { Message = "User Not Found !!" });
             }
             catch
