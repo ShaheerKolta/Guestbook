@@ -7,7 +7,9 @@ namespace Guestbook.Interfaces
         Task<User> GetUserByEmailAsync(string email);
         Task<IEnumerable<User>> GetUsersAsync();
         void CreateUser(User user);
-        void UpdateUser(User user);
+
+        //state is used to flag wether password is changed in this edit or not , states are provided in implemtntation
+        void UpdateUser(User user , int state);
         void DeleteUserAsync(int id);
     }
 }

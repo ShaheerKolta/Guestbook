@@ -154,8 +154,12 @@ namespace Guestbook.Controllers
                 //user should be validated here as well but it was not required
 
                 //user password is hashed to be stored in database
-                user.Password = Hashing.Hashing.getHash(user.Password);
-                _userRepository.UpdateUser(user);
+                if(user.Password != "")
+                {
+                    user.Password = Hashing.Hashing.getHash(user.Password);
+                    _userRepository.UpdateUser(user,0);
+                }
+                else _userRepository.UpdateUser(user,1);
                 return NoContent();
             }
             catch

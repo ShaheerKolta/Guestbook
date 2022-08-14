@@ -16,7 +16,7 @@ namespace Guestbook.Repositories
 
         public async Task<User> GetUserByEmailAsync(string email)
         {
-            var query = "SELECT * FROM Users WHERE Email=@Email";
+            var query = "SELECT User_Id,Name,Date_of_Birth,Email FROM Users WHERE Email=@Email";
             using (var connection = _context.CreateConnection())
             {
                 var user = await connection.QuerySingleOrDefaultAsync<User>(query, new { email });
@@ -27,7 +27,7 @@ namespace Guestbook.Repositories
 
         public async Task<IEnumerable<User>> GetUsersAsync()
         {
-            var query = "SELECT * FROM Users";
+            var query = "SELECT User_Id,Name,Date_of_Birth,Email FROM Users";
             using (var connection = _context.CreateConnection())
             {
                 var user = await connection.QueryAsync<User>(query);
@@ -65,15 +65,25 @@ namespace Guestbook.Repositories
 
         /*ASSUMPTIONS : User Cannot Change Email
          * User Id must be sent 
-         * 
+         * state : 0 password is changed , else : password is not changed
          */
-        public void UpdateUser(User user)
+        public void UpdateUser(User user , int state)
         {
-            var query = "UPDATE Users SET Name=@Name,Date_of_Birth =@Date_of_Birth,Password=@Password WHERE Email=@Email";
-            
-            using (var connection = _context.CreateConnection())
+            if (state == 0)
             {
-                connection.Query(query, user);
+                var query = "UPDATE Users SET Name=@Name,Date_of_Birth =@Date_of_Birth,Password=@Password WHERE Email=@Email";
+                using (var connection = _context.CreateConnection())
+                {
+                    connection.Query(query, user);
+                }
+            }
+            else
+            {
+                var query = "UPDATE Users SET Name=@Name,Date_of_Birth =@Date_of_Birth WHERE Email=@Email";
+                using (var connection = _context.CreateConnection())
+                {
+                    connection.Query(query, user);
+                }
             }
         }
     }
