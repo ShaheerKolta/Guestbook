@@ -3,6 +3,8 @@ using Guestbook.Model;
 using Guestbook.Validators;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using System.Text;
 
 namespace Guestbook.Controllers
 {
@@ -11,10 +13,16 @@ namespace Guestbook.Controllers
     public class UserController : ControllerBase
     {
         private IUserRepository _userRepository;
-        private UserValidator validator = new UserValidator();
-        public UserController(IUserRepository userRepository)
+        private readonly IConfiguration _config;
+        private UserValidator validator ;
+        
+        //to be used with sign in
+        public record AuthenticationData(string? Email, string? Password);
+        public UserController(IUserRepository userRepository , IConfiguration config)
         {
             _userRepository = userRepository;
+            validator = new UserValidator();
+            _config = config;
         }
 
 
@@ -125,6 +133,34 @@ namespace Guestbook.Controllers
             {
                 return BadRequest("Something went Wrong !");
             }
+        }
+
+
+
+        private string GenerateToken(int userId)
+        {
+            var secretKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(
+                _config.GetValue<string>("Authentication:SecretKey")));
+
+
+            var signingCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
+
+
+            List<Claim> claims = new();
+            claims.Add(new(JwtRegisteredClaimNames.Sub, userId.ToString()));
+
+
+
+            var token = new JwtSecurityToken(
+                config.GetValue<string>("Authentication:Issuer"),
+                config.GetValue<string>("Authentication:Audience"),
+                claims,
+                DateTime.Now,
+                DateTime.Now.AddDays(1),
+                signingCredentials
+                );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 }
