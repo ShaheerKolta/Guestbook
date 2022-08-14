@@ -1,6 +1,7 @@
 ﻿using Guestbook.Interfaces;
 using Guestbook.Model;
 using Guestbook.Validators;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -29,8 +30,9 @@ namespace Guestbook.Controllers
 
 
         //Function to get All Users to be used by admin
-      [HttpGet]
-      public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        [HttpGet]
+        [Authorize(Policy = "Admin")]
+        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
             try
             {
@@ -49,6 +51,7 @@ namespace Guestbook.Controllers
 
         //Function to get user by Emial to be used to display profile
         [HttpGet("{email}")]
+        [Authorize(Policy = "User")]
         public async Task<ActionResult<User>> GetUserByEmail(string email)
         {
             try
@@ -66,6 +69,7 @@ namespace Guestbook.Controllers
 
         //to be used by client to delete it's Account
         [HttpDelete("{email}")]
+        [Authorize(Policy = "User")]
         public async Task<IActionResult> DeleteUserByEmail(string email)
         {
             try
@@ -87,6 +91,7 @@ namespace Guestbook.Controllers
 
         //used to create an account
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> PostUser(User user)
         {
             try
@@ -118,6 +123,7 @@ namespace Guestbook.Controllers
 
         //data Recieved must be valid from frontend (All fields must be present except for userId)
         [HttpPut("{email}")]
+        [Authorize(Policy ="User")]
         public async Task<IActionResult> EditUser(string email ,User user)
         {
             try
@@ -138,6 +144,7 @@ namespace Guestbook.Controllers
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<ActionResult<string>> Authenticate([FromBody] AuthenticationData data)
         {
             try
@@ -153,7 +160,7 @@ namespace Guestbook.Controllers
                     role = "Admin";
                 else role = "User";
                 var token = GenerateToken(user.User_Id,role);
-                return Ok(new { token = token, userId = user.User_Id , role=role});
+                return Ok(new { token = token, userId = user.User_Id});
             }
             catch (Exception ex)
             {
