@@ -63,6 +63,7 @@ namespace Guestbook.Repositories
 
         public void DeleteMessage(int id)
         {
+            //delete message and all it's replies
             var query = "Delete FROM Message WHERE Message_Id=@Id or Parent_Id=@id";
             using (var connection = _context.CreateConnection())
             {
