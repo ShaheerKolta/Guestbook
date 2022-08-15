@@ -17,7 +17,8 @@ namespace Guestbook.Model
         [Required]
         public string Message_Content { get; set; }
 
-        public IEnumerable<Message>? Children { get; set; }
+       //to be used if messages are returned with children
+        // public IEnumerable<Message>? Children { get; set; }
 
     }
 }
