@@ -31,8 +31,18 @@ Improvements :
 
 Decisions :
 	1-Used Repository Design Pattern to create a layer between databse and server logic
+
 	2-Created Static Class Hashing to has password which threr is no need to create an object from that class so I created it Static
-	3-seperated the messages from the reply to decrease amount of data sent and perfermance of operation
+
+	3-seperated the messages from the reply to decrease amount of data sent and perfermance of operation :
+		Tried Solutions :
+			1-Self join of table problem : Duplication of parent message and huge amount of redundancy and outbound data
+			2-after quering main messages query children : Performance issues (Retrival time is too big)
+		Final Solution : made GetMessages Retrieve all messages Without children when a certain message needs it's replies another call shall be done to the backend
+
 	4-Used Post Message as a function to create a message or to reply to a message 
+
 	5-Made a self relation in database so a reply could have another reply
+
 	6-Get messages are ordered by date as well as get replies
+	
