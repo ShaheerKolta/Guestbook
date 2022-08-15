@@ -19,9 +19,14 @@ namespace Guestbook.Repositories
         public async Task<IEnumerable<Message>> GetMessagesAsync()
         {
             var query = "SELECT * FROM Message WHERE Parent_Id is NULL order by Creation_Date";
+            var childrenQuery = "SELECT * FROM Message WHERE Parent_Id=@Message_Id order by Creation_Date";
             using (var connection = _context.CreateConnection())
             {
                 var messages = await connection.QueryAsync<Message>(query);
+                foreach (var message in messages)
+                {
+                    message.Children = await connection.QueryAsync<Message>(childrenQuery, new {message.Message_Id});
+                }
                 return messages;
             }
         }

@@ -5,7 +5,7 @@ namespace Guestbook.Model
 {
     public class Message
     {
-       
+        
         [Key]
         public int Message_Id { get; set; }
         [Required]
@@ -16,6 +16,8 @@ namespace Guestbook.Model
         public DateTime Creation_Date { get; set; }
         [Required]
         public string Message_Content { get; set; }
+
+        public IEnumerable<Message>? Children { get; set; }
 
     }
 }
